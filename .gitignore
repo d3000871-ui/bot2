@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+
+# Environment & Netlify
+.env
+.netlify
+.venv/
+venv/
+env/
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>EduBot - Zamonaviy Ta'lim Platformasi</title>
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- App Container -->
+  <div id="app" class="app-wrapper">
+    <!-- Top Navigation Bar -->
+    <header class="top-nav">
+      <div class="nav-left">
+        <div class="logo">
+          <div class="logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+          <span class="logo-title">Edu<span>Platform</span></span>
+        </div>
+      </div>
+      <div class="nav-right">
+        <button id="themeToggleBtn" class="icon-btn" title="Mavzuni almashtirish">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+        <button id="profileOpenBtn" class="profile-pill">
+          <div class="avatar-small" id="userAvatar">U</div>
+          <span id="userNameHeader">O'quvchi</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Hero / Banner Section -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <div class="hero-badge"><i class="fa-solid fa-bolt"></i> Telegram Mini App</div>
+        <h1 class="hero-title">Bilim oling, <span>kelajagingizni</span> quring!</h1>
+        <p class="hero-desc">Dasturlash, sun'iy intellekt, dizayn va xorijiy tillarni interaktiv darslar va amaliy testlar orqali o'rganing.</p>
+        
+        <div class="hero-stats">
+          <div class="stat-card">
+            <span class="stat-number">12+</span>
+            <span class="stat-label">Kurslar</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-number">150+</span>
+            <span class="stat-label">Darslar</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-number">98%</span>
+            <span class="stat-label">Mamnuniyat</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search and Filters -->
+    <section class="filter-section">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="Kurs yoki mavzu bo'yicha qidiruv...">
+      </div>
+      <div class="categories-scroll" id="categoryList">
+        <button class="cat-pill active" data-category="all">Barchasi</button>
+        <button class="cat-pill" data-category="programming">💻 Dasturlash</button>
+        <button class="cat-pill" data-category="web">🌐 Frontend / Web</button>
+        <button class="cat-pill" data-category="ai">🤖 AI & Data Science</button>
+        <button class="cat-pill" data-category="design">🎨 Dizayn & UI/UX</button>
+        <button class="cat-pill" data-category="languages">🇬🇧 Ingliz tili</button>
+      </div>
+    </section>
+
+    <!-- Main Content: Course Catalog -->
+    <main class="main-content">
+      <div class="section-header">
+        <h2 id="sectionTitle">Mavjud Kurslar</h2>
+        <span class="courses-count" id="coursesCount">6 ta kurs</span>
+      </div>
+
+      <div class="course-grid" id="courseGrid">
+        <!-- Courses will be rendered dynamically via JS -->
+      </div>
+    </main>
+
+    <!-- Bottom Navigation Bar for Mobile / Telegram App -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-view="courses">
+        <i class="fa-solid fa-book-open"></i>
+        <span>Kurslar</span>
+      </button>
+      <button class="nav-item" data-view="my-learning">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Natijalar</span>
+      </button>
+      <button class="nav-item" data-view="quiz">
+        <i class="fa-solid fa-circle-question"></i>
+        <span>Testlar</span>
+      </button>
+      <button class="nav-item" data-view="profile">
+        <i class="fa-solid fa-user"></i>
+        <span>Profil</span>
+      </button>
+    </nav>
+
+    <!-- Course Learning Modal -->
+    <div id="courseModal" class="modal-overlay hidden">
+      <div class="modal-container">
+        <div class="modal-header">
+          <button class="back-btn" id="closeCourseModalBtn">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <h3 id="modalCourseTitle">Kurs nomi</h3>
+          <button class="bookmark-btn" id="modalBookmarkBtn">
+            <i class="fa-regular fa-bookmark"></i>
+          </button>
+        </div>
+        
+        <div class="modal-body" id="modalCourseBody">
+          <!-- Dynamic course details -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Quiz / Test Modal -->
+    <div id="quizModal" class="modal-overlay hidden">
+      <div class="modal-container">
+        <div class="modal-header">
+          <button class="back-btn" id="closeQuizModalBtn">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+          <h3 id="quizTitle">Dars bo'yicha Test</h3>
+          <div class="quiz-timer" id="quizTimer">
+            <i class="fa-regular fa-clock"></i> <span id="timerValue">05:00</span>
+          </div>
+        </div>
+
+        <div class="modal-body" id="quizContent">
+          <!-- Dynamic quiz steps -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile & Achievements Modal -->
+    <div id="profileModal" class="modal-overlay hidden">
+      <div class="modal-container">
+        <div class="modal-header">
+          <button class="back-btn" id="closeProfileModalBtn">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+          <h3>Mening Profilim</h3>
+          <div style="width: 24px;"></div>
+        </div>
+        <div class="modal-body" id="profileContent">
+          <!-- Dynamic profile details -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">
+      <i class="fa-solid fa-circle-check"></i>
+      <span id="toastMsg">Xabar</span>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
