@@ -21,13 +21,13 @@ const COURSES = [
     duration: '18 soat',
     description: 'Noldan boshlab murakkab Telegram botlar, WebApp (Mini App), to\'lov tizimlari va avtomatlashtirish botlarini ishlab chiqish.',
     syllabus: [
-      { id: 1, title: 'Kirish: Telegram Bot API qanday ishlaydi?', duration: '12 daq', video: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ' },
+      { id: 1, title: 'Kirish: Telegram Bot API qanday ishlaydi?', duration: '12 daq' },
       { id: 2, title: 'Aiogram 3 o\'rnatish va birinchi /start buyrug\'i', duration: '20 daq' },
       { id: 3, title: 'Inline klaviaturalar va Callback so\'rovlari', duration: '25 daq' },
       { id: 4, title: 'FSM (Finite State Machine) bilan ro\'yxatdan o\'tish', duration: '32 daq' },
       { id: 5, title: 'Telegram WebApp integratsiyasi (HTML & JS)', duration: '40 daq' },
       { id: 6, title: 'PostgreSQL bazasi bilan bog\'lash', duration: '35 daq' },
-      { id: 7, title: 'Botni serverga (VPS/Railway) joylash', duration: '28 daq' }
+      { id: 7, title: 'Botni serverga (Render/VPS) joylash', duration: '28 daq' }
     ],
     quiz: [
       {
@@ -210,6 +210,7 @@ let appState = {
   completedLessons: JSON.parse(localStorage.getItem('edu_completed') || '{}'),
   quizScores: JSON.parse(localStorage.getItem('edu_scores') || '{}'),
   theme: localStorage.getItem('edu_theme') || 'light',
+  botUsername: 'edubot',
   user: {
     id: null,
     firstName: "O'quvchi",
@@ -221,37 +222,71 @@ let appState = {
 // 3. Telegram WebApp integratsiyasi
 const tg = window.Telegram?.WebApp;
 
-function initTelegram() {
-  if (tg) {
-    tg.ready();
-    tg.expand();
-    document.body.classList.add('telegram-app');
+async function initTelegram() {
+  const isInsideTelegram = Boolean(tg && tg.initData && tg.initData.length > 0);
 
-    // Foydalanuvchi ma'lumotlarini olish
-    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-      const u = tg.initDataUnsafe.user;
-      appState.user.id = u.id;
-      appState.user.firstName = u.first_name || "O'quvchi";
-      appState.user.lastName = u.last_name || '';
-      appState.user.username = u.username ? `@${u.username}` : '';
-      
-      const avatarEl = document.getElementById('userAvatar');
-      const nameEl = document.getElementById('userNameHeader');
-      if (avatarEl) avatarEl.textContent = appState.user.firstName.charAt(0).toUpperCase();
-      if (nameEl) nameEl.textContent = appState.user.firstName;
+  if (tg) {
+    try {
+      tg.ready();
+      tg.expand();
+    } catch (e) {
+      console.warn("Telegram WebApp ready xatosi:", e);
     }
+  }
+
+  // Telegram ichida ochilgan bo'lsa
+  if (isInsideTelegram && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+    document.body.classList.add('telegram-app');
+    const u = tg.initDataUnsafe.user;
+    appState.user.id = u.id;
+    appState.user.firstName = u.first_name || "O'quvchi";
+    appState.user.lastName = u.last_name || '';
+    appState.user.username = u.username ? `@${u.username}` : '';
+    
+    const avatarEl = document.getElementById('userAvatar');
+    const nameEl = document.getElementById('userNameHeader');
+    if (avatarEl) avatarEl.textContent = appState.user.firstName.charAt(0).toUpperCase();
+    if (nameEl) nameEl.textContent = appState.user.firstName;
 
     // Telegram mavzusiga moslashish
     if (tg.colorScheme === 'dark') {
       setTheme('dark');
     }
+  } else {
+    // Brauzer orqali ochilgan bo'lsa, Telegram taklif bannerini ko'rsatish
+    const banner = document.getElementById('tgNoticeBanner');
+    if (banner) banner.classList.remove('hidden');
   }
+
+  // Serverdan bot ma'lumotlarini tekshirish
+  try {
+    const res = await fetch('/api/config');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.bot_username && data.bot_username !== "Noma'lum") {
+        appState.botUsername = data.bot_username;
+        updateBotLinks(data.bot_username);
+      }
+    }
+  } catch (e) {
+    // Standart havola ishlaydi
+  }
+}
+
+function updateBotLinks(username) {
+  const url = `https://t.me/${username}`;
+  const bannerBtn = document.getElementById('tgBotLinkBtn');
+  const floatBtn = document.getElementById('floatingTgBtn');
+  if (bannerBtn) bannerBtn.href = url;
+  if (floatBtn) floatBtn.href = url;
 }
 
 // Haptic tebranish funksiyasi
 function triggerHaptic(type = 'light') {
   if (tg?.HapticFeedback) {
-    tg.HapticFeedback.impactOccurred(type);
+    try {
+      tg.HapticFeedback.impactOccurred(type);
+    } catch (e) {}
   }
 }
 
@@ -445,13 +480,15 @@ window.enrollCourse = function(courseId) {
   renderCourses();
   openCourseModal(courseId);
 
-  // Telegram botga xabar uzatish
-  if (tg) {
-    tg.sendData(JSON.stringify({
-      action: 'enroll',
-      course_id: courseId,
-      user_id: appState.user.id
-    }));
+  // Telegram botga ma'lumot uzatish
+  if (tg && tg.initData && tg.initData.length > 0) {
+    try {
+      tg.sendData(JSON.stringify({
+        action: 'enroll',
+        course_id: courseId,
+        user_id: appState.user.id
+      }));
+    } catch (e) {}
   }
 };
 
@@ -511,7 +548,6 @@ function renderQuizStep() {
   const current = quizState.currentQuestion;
 
   if (current >= total) {
-    // Test natijalari
     renderQuizResults(course);
     return;
   }
@@ -582,7 +618,7 @@ function renderQuizResults(course) {
   `;
 }
 
-window.sendResultToTelegram = function() {
+window.sendResultToTelegram = async function() {
   triggerHaptic('medium');
   const course = COURSES.find(c => c.id === quizState.courseId);
   const payload = {
@@ -591,22 +627,42 @@ window.sendResultToTelegram = function() {
     course_title: course?.title || 'Kurs',
     score: quizState.score,
     total: course?.quiz?.length || 0,
+    user_id: appState.user.id,
     user: appState.user
   };
 
-  if (tg) {
+  let sentViaTg = false;
+
+  // 1. Telegram WebApp SDK orqali botga uzatish
+  if (tg && tg.initData && tg.initData.length > 0) {
     try {
       tg.sendData(JSON.stringify(payload));
-      showToast("🚀 Natijangiz Telegram botga yuborildi!");
-      setTimeout(() => {
-        closeQuizModal();
-      }, 1000);
+      sentViaTg = true;
     } catch (e) {
-      showToast("Natija saqlandi!");
+      console.warn("sendData xatosi:", e);
     }
-  } else {
-    showToast("Natija saqlandi! (Telegram ichida botga uzatiladi)");
   }
+
+  // 2. Server API (/api/submit-quiz) orqali yuborish
+  try {
+    await fetch('/api/submit-quiz', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (e) {
+    // offline yoki statik
+  }
+
+  if (sentViaTg) {
+    showToast("🚀 Natijangiz Telegram botga yuborildi!");
+  } else {
+    showToast("✅ Natijangiz muvaffaqiyatli saqlandi!");
+  }
+
+  setTimeout(() => {
+    closeQuizModal();
+  }, 1000);
 };
 
 window.closeQuizModal = function() {
@@ -648,7 +704,7 @@ function renderProfile() {
       <div class="achievement-card">
         <i class="fa-solid fa-award"></i>
         <div class="ach-title">Sertifikatlar</div>
-        <div class="ach-desc">Tez kunda</div>
+        <div class="ach-desc">Faol o'quvchi</div>
       </div>
       <div class="achievement-card">
         <i class="fa-solid fa-fire"></i>

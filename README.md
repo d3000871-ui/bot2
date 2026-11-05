@@ -1,99 +1,97 @@
 # 🎓 EduPlatform - Telegram WebApp O'quv Platformasi
 
-Zamonaviy, qulay va interaktiv ta'lim platformasi. Ushbu loyiha ham oddiy veb-brauzerda, ham **Telegram WebApp (Mini App)** sifatida to'liq ishlaydi va Telegram bot bilan integratsiya qilingan.
+Zamonaviy, qulay va interaktiv IT ta'lim platformasi. Ushbu loyiha ham veb-brauzerda, ham **Telegram WebApp (Mini App)** sifatida to'liq ishlaydi va Telegram bot bilan integratsiya qilingan.
 
 [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/d3000871-ui/bot2)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/d3000871-ui/bot2)
 
 ---
 
-## ✨ Loyiha Imkoniyatlari
+## 🤖 Bot Ma'lumotlari
 
-- 📱 **Telegram Mini App Integratsiyasi**:
-  - `Telegram.WebApp` SDK orqali foydalanuvchi ma'lumotlarini avtomatik aniqlash (Ism, avatar).
-  - Telegram ranglar mavzusiga moslashish (Dark / Light mode).
-  - Haptic feedback (tugmalarni bosganda tebranish effekti).
-  - Natijalarni to'g'ridan-to'g'ri Telegram botga yuborish (`sendData`).
-- 📚 **Kurslar Katalogi**:
-  - Python va Backend (Django)
-  - Telegram Bot yaratish (Aiogram 3)
-  - Zamonaviy Frontend & React
-  - Sun'iy Intellekt (AI) & Prompt muhandisligi
-  - UI/UX Dizayn (Figma)
-  - IT uchun Ingliz tili
-- 🎥 **Interaktiv Darslar Rejasi (Syllabus)**: Har bir kurs darslari, videopleer simulyatsiyasi va darslarni o'zlashtirish belgisi.
-- 📝 **Viktorina va Test (Quiz) Tizimi**:
-  - Har bir kurs bo'yicha amaliy savollar va ballar hisobi.
-  - Test yakunida natijani Telegram botga yuborish.
-- 👤 **Shaxsiy Profil va Yutuqlar**:
-  - O'rganilgan darslar soni, faollik nishonlari va sertifikatlar statistikasi.
-- 🔍 **Qidiruv va Kategoriya Filtrlari**: Tezkor qidirish imkoniyati.
+- **Bot Tokeni:** `9201806873:AAELTm5p88mK9yNIfMUHB9cI7yQLFnnjY4s`
+- **Integratsiya turlari:**
+  1. **Telegram WebApp SDK:** Foydalanuvchi ismi, avatari va Telegram ranglari avtomatik yuklanadi.
+  2. **Boshqaruv menyusi (Menu Button):** Botning pastki chap qismidagi "🎓 Platforma" tugmasi orqali istalgan vaqtda platformani to'liq ekranda ochish mumkin.
+  3. **Interaktiv test natijalari:** Saytdagi testlar topshirilgach, natijalar ball, foiz va yutuq nishonlari bilan birga to'g'ridan-to'g'ri Telegram botga xabar shaklida yuboriladi.
+  4. **Sayt orqali botga o'tish:** Agar foydalanuvchi oddiy kompyuter brauzerida ochsa, yuqori qismdagi banner va suzuvchi Telegram tugmasi orqali botga 1 bosishda o'tishi mumkin.
 
 ---
 
-## 🚀 Netlify-ga Deploy Qilish
+## 🚀 Render.com ga Deploy Qilish (Qadam-ba-qadam)
 
-Sayt to'liq statik (HTML5, CSS3, JavaScript) bo'lgani uchun **Netlify** platformasida 1 daqiqada bepul ishga tushadi:
+Render.com da bot va saytni **bitta bepul Web Service** sifatida bir vaqtning o'zida yurgizish mumkin:
 
-### 1-usul: GitHub orqali (Tavsiya etiladi - Continuous Deployment)
-1. [Netlify.com](https://app.netlify.com) saytiga kiring va ro'yxatdan o'ting / kiring.
-2. **"Add new site"** -> **"Import an existing project"** ni bosing.
-3. **GitHub** provayderini tanlang va `bot2` (https://github.com/d3000871-ui/bot2) reponi tanlang.
-4. Build sozlamalari:
-   - **Branch to deploy:** `main` (yoki `master`)
-   - **Publish directory:** `.`
-5. **"Deploy site"** tugmasini bosing!
-6. Netlify sizga havola taqdim etadi (masalan: `https://sizning-saytingiz.netlify.app`).
+### 1-usul: Render Blueprint (Avtomatik - Eng osoni)
+1. [dashboard.render.com](https://dashboard.render.com/) sahifasiga kiring.
+2. **"New +"** tugmasini bosing va **"Blueprint"** ni tanlang.
+3. GitHub hisobingizdagi `bot2` ([https://github.com/d3000871-ui/bot2](https://github.com/d3000871-ui/bot2)) reponi tanlang.
+4. Render loyihangizdagi `render.yaml` faylini avtomatik o'qiydi va sozlaydi.
+5. **"Apply"** tugmasini bosing! Bir necha daqiqada saytingiz va botingiz ishga tushadi.
 
-### 2-usul: Bir martalik tugma orqali
-Yuqoridagi **"Deploy to Netlify"** tugmasini bosing va o'z hisobingizga yuklang.
+### 2-usul: Qo'lda Web Service yaratish
+1. [dashboard.render.com](https://dashboard.render.com/) da **"New +"** -> **"Web Service"** ni bosing.
+2. `bot2` reponi tanlang.
+3. Sozlamalar:
+   - **Name:** `edubot-platform`
+   - **Language:** `Python 3`
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `python server.py`
+4. **Environment Variables** (Muhit o'zgaruvchilari) bo'limida:
+   - `BOT_TOKEN` = `9201806873:AAELTm5p88mK9yNIfMUHB9cI7yQLFnnjY4s`
+   - `WEBAPP_URL` = `https://sizning-servisingiz.onrender.com` (yoki Netlify manzilingiz)
+5. **"Create Web Service"** tugmasini bosing.
 
 ---
 
-## 🤖 Telegram Botni Sozlash va Ishga Tushirish
+## ⚡ Netlify-ga Deploy Qilish
 
-### 1. Bot yaratish (@BotFather)
-1. Telegramda [@BotFather](https://t.me/BotFather) botiga kiring.
-2. `/newbot` buyrug'ini yuboring va botingiz nomini kiriting.
-3. Olingan **HTTP API Token**ni saqlab oling.
+Agar saytingizni Netlify-da alohida tezyurar CDN orqali joylamoqchi bo'lsangiz:
+1. [app.netlify.com](https://app.netlify.com) saytiga kiring.
+2. **"Add new site"** -> **"Import an existing project"** -> **GitHub** -> `bot2` reponi tanlang.
+3. **Publish directory:** `.` (nuqta).
+4. **"Deploy site"** tugmasini bosing.
+5. Chiqqan havola (masalan, `https://bot2-edu.netlify.app`)ni botga o'rnatish uchun Telegramda botingizga quyidagicha yozing:
+   `/seturl https://bot2-edu.netlify.app`
 
-### 2. WebApp Menyu tugmasini yoqish
-1. [@BotFather](https://t.me/BotFather) ga kiring.
-2. `/mybots` -> Botingizni tanlang -> **"Bot Settings"** -> **"Menu Button"** -> **"Configure menu button"**.
-3. Netlify-dagi havolangizni yuboring (masalan: `https://sizning-saytingiz.netlify.app`).
-4. Tugma nomini kiriting (masalan: `🎓 Platforma`).
+---
 
-### 3. Python Botni ishga tushirish:
+## 💻 Mahalliy Kompyuterda Ishga Tushirish
+
 ```bash
-# Kerakli kutubxonani o'rnatish
+# Kerakli kutubxonalarni o'rnatish
 pip install -r requirements.txt
 
-# bot.py faylidagi BOT_TOKEN va WEBAPP_URL ni o'zgartiring, yoki muhit o'zgaruvchilari orqali:
-export BOT_TOKEN="SIZNING_BOT_TOKENINGIZ"
-export WEBAPP_URL="https://sizning-saytingiz.netlify.app"
+# Web Sayt + Botni birga ishga tushirish (Render rejimi)
+python server.py
 
-# Ishga tushirish
+# Yoki faqat botning o'zini ishga tushirish
 python bot.py
 ```
 
+Brauzerda [http://localhost:10000](http://localhost:10000) manzilini ochib platformani tekshirishingiz mumkin.
+
 ---
 
-## 📁 Fayllar Tuzilishi
+## 📁 Fayllar Strukturasi
 
 ```text
-├── index.html            # Asosiy HTML interfeys (Telegram WebApp & Landing)
+├── index.html            # Asosiy veb-ilova va Telegram WebApp sahifasi
 ├── css/
-│   └── style.css         # Zamonaviy dizayn, dark/light mavzu, mobil moslashuv
+│   └── style.css         # Zamonaviy mobil va dark-mode dizayn
 ├── js/
-│   └── app.js           # Kurslar bazasi, testlar, Telegram WebApp API
-├── bot.py                # Aiogram 3 da yozilgan Telegram bot
-├── netlify.toml          # Netlify server sozlamalari va Telegram iframe ruxsatlari
-├── _headers              # X-Frame-Options va xavfsizlik sozlamalari
-├── _redirects            # SPA yo'naltirish qoidalari
-├── requirements.txt      # Python paketlari
-├── .gitignore            # Git istisno fayllari
-└── README.md             # Qo'llanma
+│   └── app.js           # Kurslar bazasi, testlar, Telegram WebApp integratsiyasi
+├── server.py             # Render uchun Web-server + Telegram bot birlashgan server
+├── bot.py                # Alohida Telegram bot skripti (Aiogram 3)
+├── render.yaml           # Render.com Blueprint sozlamalari
+├── Procfile              # Render / PaaS ishga tushirish buyrug'i
+├── runtime.txt           # Python versiyasi
+├── netlify.toml          # Netlify sozlamalari va Telegram iframe ruxsatlari
+├── requirements.txt      # Aiogram va Aiohttp paketlari
+└── README.md             # To'liq qo'llanma
 ```
 
 ---
 
 Muallif: [d3000871-ui](https://github.com/d3000871-ui)
+Repo: [https://github.com/d3000871-ui/bot2.git](https://github.com/d3000871-ui/bot2.git)

@@ -2,3 +2,4 @@
   X-Frame-Options: ALLOWALL
   Access-Control-Allow-Origin: *
   Content-Security-Policy: frame-ancestors 'self' https://web.telegram.org https://*.telegram.org;
+
