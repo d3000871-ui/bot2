@@ -4,11 +4,12 @@ Maxsus Render.com va Netlify uchun ishlab chiqilgan.
 
 Xususiyatlari:
 1. Render portini ($PORT) tinglaydi va saytni (index.html, css, js) host qiladi.
-2. Aiogram 3 Telegram botini bir vaqtning o'zida fonda yurgizadi.
-3. Saytdan (/api/submit-quiz) kelgan test natijalarini to'g'ridan-to'g'ri bot orqali foydalanuvchiga yuboradi.
+2. Aiogram 3 Telegram botini bir vaqtning o'zida fonda yurgizadi (handle_signals=False).
+3. Istalgan xatoliklarda ham veb-server to'xtamaydi va yashab qoladi.
 """
 
 import os
+import sys
 import json
 import logging
 import asyncio
@@ -24,25 +25,26 @@ from aiogram.types import (
 )
 
 # 1. Konfiguratsiya
-PORT = int(os.getenv("PORT", 10000))
-BOT_TOKEN = os.getenv("BOT_TOKEN", "9201806873:AAELTm5p88mK9yNIfMUHB9cI7yQLFnnjY4s")
-WEBAPP_URL = os.getenv("WEBAPP_URL", "")
+PORT = int(os.environ.get("PORT", 10000))
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "9201806873:AAELTm5p88mK9yNIfMUHB9cI7yQLFnnjY4s").strip()
+WEBAPP_URL = os.environ.get("WEBAPP_URL", "").strip()
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s"
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
 logger = logging.getLogger("EduServer")
 
 BASE_DIR = Path(__file__).resolve().parent
 
-# 2. Telegram Botni sozlash
+# 2. Telegram Bot & Dispatcher
 bot = None
 dp = Dispatcher()
 
 if BOT_TOKEN and BOT_TOKEN != "BOT_TOKENINGIZNI_BU_YERGA_YOZING":
     try:
         bot = Bot(token=BOT_TOKEN)
+        logger.info("Bot obyekti muvaffaqiyatli yaratildi.")
     except Exception as e:
         logger.error(f"Botni ishga tushirishda xato: {e}")
 
@@ -82,7 +84,7 @@ async def bot_start(message: types.Message):
             )
         )
     except Exception as e:
-        logger.warning(f"Menyu tugmasida xato: {e}")
+        logger.warning(f"Menyu tugmasida ogohlantirish: {e}")
 
     text = (
         f"Assalomu alaykum, <b>{user_name}</b>! 👋\n\n"
@@ -133,7 +135,7 @@ async def bot_seturl(message: types.Message):
             menu_button=MenuButtonWebApp(text="🎓 Platforma", web_app=WebAppInfo(url=WEBAPP_URL))
         )
     except Exception as e:
-        logger.warning(f"Menyu tugmasida xato: {e}")
+        logger.warning(f"Menyu tugmasida ogohlantirish: {e}")
 
     await message.answer(
         f"✅ <b>WebApp URL yangilandi:</b>\n<code>{WEBAPP_URL}</code>",
@@ -203,27 +205,28 @@ async def cb_achievements(callback: types.CallbackQuery):
     await callback.answer()
 
 
-# 3. HTTP Web Server Handlers (Render uchun)
+# 3. HTTP Web Server Handlers
 async def handle_index(request):
-    """Asosiy sahifani (index.html) uzatish"""
+    """Asosiy index.html sahifasini uzatish"""
     index_file = BASE_DIR / "index.html"
-    return web.FileResponse(index_file)
+    if index_file.exists():
+        return web.FileResponse(index_file)
+    return web.Response(text="EduPlatform ishlamoqda. index.html topilmadi.", status=200)
 
 
 async def handle_health(request):
-    """Render salomatlik tekshiruvi (Health check)"""
+    """Render uchun Health Check"""
     bot_status = "connected" if bot else "not_configured"
     return web.json_response({
         "status": "healthy",
         "service": "EduPlatform Web & Bot Server",
         "bot_status": bot_status,
-        "webapp_url": WEBAPP_URL
+        "port": PORT
     })
 
 
 async def handle_api_config(request):
-    """Frontend uchun bot sozlamalari"""
-    username = "Noma'lum"
+    username = "queit_muffin_bot"
     if bot:
         try:
             me = await bot.get_me()
@@ -238,17 +241,14 @@ async def handle_api_config(request):
 
 
 async def handle_submit_quiz(request):
-    """Saytdan test natijalarini qabul qilish va botga yuborish"""
     try:
         body = await request.json()
         user_id = body.get("user_id")
         course_title = body.get("course_title", "Kurs")
         score = body.get("score", 0)
         total = body.get("total", 0)
-
         percent = round((score / total) * 100) if total > 0 else 0
 
-        # Agar Telegram user_id mavjud bo'lsa, to'g'ridan-to'g'ri foydalanuvchiga Telegram orqali xabar yuboramiz
         if bot and user_id:
             try:
                 await bot.send_message(
@@ -264,40 +264,50 @@ async def handle_submit_quiz(request):
             except Exception as e:
                 logger.warning(f"Telegramga xabar jo'natilmadi: {e}")
 
-        return web.json_response({"success": True, "message": "Natija qabul qilindi!"})
+        return web.json_response({"success": True})
     except Exception as e:
-        logger.error(f"Test submit xatosi: {e}")
         return web.json_response({"success": False, "error": str(e)}, status=400)
 
 
-# 4. Background Bot Runner (aiohttp bilan integratsiya)
-async def start_background_bot(app):
+# 4. Background Bot Lifecycle (cleanup_ctx)
+async def aiogram_background_runner(app: web.Application):
+    """Aiogram botini fonda xavfsiz (handle_signals=False) yurgizish"""
+    polling_task = None
     if bot:
-        logger.info("Telegram Bot polling boshlanmoqda...")
-        app['bot_task'] = asyncio.create_task(dp.start_polling(bot))
-
-
-async def cleanup_background_bot(app):
-    if 'bot_task' in app:
-        app['bot_task'].cancel()
         try:
-            await app['bot_task']
+            logger.info("Bot polling ishga tushirilmoqda (handle_signals=False)...")
+            polling_task = asyncio.create_task(
+                dp.start_polling(bot, handle_signals=False)
+            )
+        except Exception as e:
+            logger.error(f"Bot start_polling xatosi: {e}")
+
+    yield
+
+    # Server to'xtaganda resurslarni xavfsiz tozalash
+    if polling_task:
+        polling_task.cancel()
+        try:
+            await polling_task
         except asyncio.CancelledError:
             pass
     if bot:
-        await bot.session.close()
+        try:
+            await bot.session.close()
+        except Exception:
+            pass
 
 
 def create_app():
     app = web.Application()
 
-    # Statik fayllar (css va js)
+    # Statik fayllarni ulash
     css_dir = BASE_DIR / "css"
     js_dir = BASE_DIR / "js"
     if css_dir.exists():
-        app.router.add_static("/css/", path=str(css_dir), name="css")
+        app.router.add_static("/css", path=str(css_dir), name="css")
     if js_dir.exists():
-        app.router.add_static("/js/", path=str(js_dir), name="js")
+        app.router.add_static("/js", path=str(js_dir), name="js")
 
     # Marshrutlar
     app.router.add_get("/", handle_index)
@@ -306,14 +316,13 @@ def create_app():
     app.router.add_get("/api/config", handle_api_config)
     app.router.add_post("/api/submit-quiz", handle_submit_quiz)
 
-    # Botni aiohttp hayot sikli bilan boshqarish
-    app.on_startup.append(start_background_bot)
-    app.on_cleanup.append(cleanup_background_bot)
+    # Bot fon sikli
+    app.cleanup_ctx.append(aiogram_background_runner)
 
     return app
 
 
 if __name__ == "__main__":
-    logger.info(f"EduServer port {PORT} da ishga tushmoqda...")
+    logger.info(f"EduServer port {PORT} da tinglashni boshlamoqda...")
     app = create_app()
     web.run_app(app, host="0.0.0.0", port=PORT)
