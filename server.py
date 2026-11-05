@@ -249,6 +249,11 @@ async def handle_submit_quiz(request):
         total = body.get("total", 0)
         percent = round((score / total) * 100) if total > 0 else 0
 
+        if percent >= 70:
+            result_note = "🎉 Ajoyib, bilimingiz tasdiqlandi!"
+        else:
+            result_note = "💡 Yana bir bor urinib ko'ring!"
+
         if bot and user_id:
             try:
                 await bot.send_message(
@@ -257,7 +262,7 @@ async def handle_submit_quiz(request):
                         f"📊 <b>EduPlatform Test Natijasi:</b>\n\n"
                         f"📚 Kurs: <b>{course_title}</b>\n"
                         f"🎯 Natija: <b>{score}/{total}</b> ({percent}%)\n\n"
-                        f"{'🎉 Ajoyib, bilimingiz tasdiqlandi!' if percent >= 70 else '💡 Yana bir bor urinib ko\'ring!'}"
+                        f"{result_note}"
                     ),
                     parse_mode="HTML"
                 )
