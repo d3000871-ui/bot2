@@ -1,8 +1,9 @@
 services:
-  # 1. Unified Web & Telegram Bot Service
+  # 1. Unified Web & Telegram Bot Service (100% Bepul / Free Tier - Karta talab qilinmaydi)
   - type: web
     name: edubot-platform
     runtime: python
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: python server.py
     envVars:
