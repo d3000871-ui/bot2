@@ -27,7 +27,11 @@ from aiogram.types import (
 # 1. Konfiguratsiya
 PORT = int(os.environ.get("PORT", 10000))
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "9201806873:AAELTm5p88mK9yNIfMUHB9cI7yQLFnnjY4s").strip()
-WEBAPP_URL = os.environ.get("WEBAPP_URL", "").strip()
+WEBAPP_URL = (
+    os.environ.get("WEBAPP_URL", "").strip()
+    or os.environ.get("RENDER_EXTERNAL_URL", "").strip()
+    or "https://edubot-platform.onrender.com"
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -73,7 +77,7 @@ def get_keyboard(url: str):
 async def bot_start(message: types.Message):
     global WEBAPP_URL
     user_name = message.from_user.first_name
-    current_url = WEBAPP_URL or "https://edubot-platform.netlify.app"
+    current_url = WEBAPP_URL or "https://edubot-platform.onrender.com"
 
     try:
         await bot.set_chat_menu_button(
@@ -97,7 +101,7 @@ async def bot_start(message: types.Message):
 
 @dp.message(Command("courses"))
 async def bot_courses(message: types.Message):
-    current_url = WEBAPP_URL or "https://edubot-platform.netlify.app"
+    current_url = WEBAPP_URL or "https://edubot-platform.onrender.com"
     text = (
         "📖 <b>Mavjud O'quv Kurslari:</b>\n\n"
         "1. 🐍 Python Backend & Django (28 dars)\n"
@@ -179,7 +183,7 @@ async def bot_webapp_data(message: types.Message):
 
 @dp.callback_query(F.data == "show_courses")
 async def cb_courses(callback: types.CallbackQuery):
-    url = WEBAPP_URL or "https://edubot-platform.netlify.app"
+    url = WEBAPP_URL or "https://edubot-platform.onrender.com"
     await callback.message.answer(
         "Darslarni boshlash uchun platformaga kiring:",
         reply_markup=InlineKeyboardMarkup(
@@ -193,7 +197,7 @@ async def cb_courses(callback: types.CallbackQuery):
 
 @dp.callback_query(F.data == "show_achievements")
 async def cb_achievements(callback: types.CallbackQuery):
-    url = WEBAPP_URL or "https://edubot-platform.netlify.app"
+    url = WEBAPP_URL or "https://edubot-platform.onrender.com"
     await callback.message.answer(
         "🏆 Profilingiz va olingan ballaringiz platformaning 'Profil' qismida saqlanadi:",
         reply_markup=InlineKeyboardMarkup(

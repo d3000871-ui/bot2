@@ -23,7 +23,7 @@ from aiogram.types import (
 BOT_TOKEN = os.getenv("BOT_TOKEN", "9201806873:AAELTm5p88mK9yNIfMUHB9cI7yQLFnnjY4s")
 
 # Netlify yoki Render-dagi saytingiz havolasi
-WEBAPP_URL = os.getenv("WEBAPP_URL", "https://edubot-platform.netlify.app")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://edubot-platform.onrender.com")
 
 logging.basicConfig(
     level=logging.INFO,
